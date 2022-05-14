@@ -9,6 +9,6 @@ vcpkg.install:
 	$(VCPKG_ROOT)/vcpkg install sqlite3
 
 test:
-	koka --vcpkg=$(VCPKG_ROOT) --include=./src -e test/main.kk
+	koka --vcpkg=$(VCPKG_ROOT) --outputdir=./.out --include=./src -e test/main.kk
 
 .PHONY: test
