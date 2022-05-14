@@ -11,4 +11,4 @@ vcpkg.install:
 test:
 	koka --vcpkg=$(VCPKG_ROOT) --include=./src -e test/main.kk
 
-.PHONY: test install
+.PHONY: test
