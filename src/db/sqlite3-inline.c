@@ -52,7 +52,8 @@ static kk_unit_t kk_sqlite3_close( kk_box_t db_, kk_context_t* ctx ) {
 // * prepare
 // https://www.sqlite.org/c3ref/prepare.html
 
-static kk_std_core__error kk_sqlite3_prepare( kk_box_t db_, kk_string_t sql, kk_context_t* ctx ) {
+// TODO: check for leftover(pzTail)
+static kk_std_core__error kk_sqlite3_prepare_v2( kk_box_t db_, kk_string_t sql, kk_context_t* ctx ) {
   sqlite3_stmt *stmt = NULL;
   sqlite3 *db = (sqlite3*)kk_cptr_raw_unbox(db_);
   const char *zSql = kk_string_cbuf_borrow(sql, NULL);
