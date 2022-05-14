@@ -1,5 +1,14 @@
 
-test:
-	koka -i./src -e test/main.kk
+VCPKG_ROOT := ./vcpkg
 
-.PHONY: test
+vcpkg.init:
+	git clone https://github.com/Microsoft/vcpkg.git $(VCPKG_ROOT)
+	$(VCPKG_ROOT)/bootstrap-vcpkg.sh
+
+vcpkg.install:
+	$(VCPKG_ROOT)/vcpkg install sqlite3
+
+test:
+	koka --vcpkg=$(VCPKG_ROOT) --include=./src -e test/main.kk
+
+.PHONY: test install

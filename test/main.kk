@@ -3,7 +3,7 @@ module main
 import db/sqlite3
 
 fun test-open()
-    val conn = open-in-memory()
+    val conn = open-in-memory-db()
     println("opened")
 
 fun main()
