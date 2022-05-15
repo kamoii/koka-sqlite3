@@ -57,3 +57,36 @@ extern sqlite3-prepare-v2( ^db : any, ^sql : string ) : fsys error<any>
 
 pub fun prepare( db : db, sql : string ) : <fsys,exn> stmt
     Stmt(db.obj.sqlite3-prepare-v2(sql).untry)
+
+// * Binding Values To Prepared Statements
+// https://www.sqlite.org/c3ref/bind_blob.html
+
+// null
+extern sqlite3-bind-null( ^stmt : any, ^index : int ) : fsys error<()>
+    c "kk_sqlite3_bind_null"
+
+pub fun bind-null( stmt : stmt, index : int ) : <fsys,exn> ()
+    stmt.obj.sqlite3-bind-null(index).untry
+
+// int64
+extern sqlite3-bind-int64( ^stmt : any, ^index : int, value : int64 ) : fsys error<()>
+    c "kk_sqlite3_bind_int64"
+
+pub fun bind-int64( stmt : stmt, index : int, value : int64 ) : <fsys,exn> ()
+    stmt.obj.sqlite3-bind-int64(index, value).untry
+
+// text
+extern sqlite3-bind-text( ^stmt : any, ^index : int, ^value : string ) : fsys error<()>
+    c "kk_sqlite3_bind_text"
+
+pub fun bind-text( stmt : stmt, index : int, value : string ) : <fsys,exn> ()
+    stmt.obj.sqlite3-bind-text(index, value).untry
+
+// * finalizer
+// https://www.sqlite.org/c3ref/finalize.html
+
+extern sqlite3-finalize( ^stmt : any ) : fsys error<()>
+    c "kk_sqlite3_finalize"
+
+pub fun finalize( stmt : stmt ) : <fsys,exn> ()
+    stmt.obj.sqlite3-finalize.untry

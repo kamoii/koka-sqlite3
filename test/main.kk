@@ -6,7 +6,7 @@ fun test-open()
     val db = open-in-memory()
     val stmt = db.prepare("select 1")
     trace-any("stmt", stmt)
-    println("opened")
+    stmt.finalize()
 
 fun main()
     test-open()
