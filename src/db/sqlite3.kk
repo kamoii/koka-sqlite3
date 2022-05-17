@@ -55,7 +55,7 @@ pub fun close( db : db ) : fsys ()
 extern sqlite3-prepare-v2( ^db : any, ^sql : string ) : fsys error<any>
     c "kk_sqlite3_prepare_v2"
 
-pub fun prepare( db : db, sql : string ) : <fsys,exn> stmt
+pub fun prepare-v2( db : db, sql : string ) : <fsys,exn> stmt
     Stmt(db.obj.sqlite3-prepare-v2(sql).untry)
 
 // * Binding Values To Prepared Statements
@@ -81,6 +81,20 @@ extern sqlite3-bind-text( ^stmt : any, ^index : int, ^value : string ) : fsys er
 
 pub fun bind-text( stmt : stmt, index : int, value : string ) : <fsys,exn> ()
     stmt.obj.sqlite3-bind-text(index, value).untry
+
+// * Evaluate An SQL Statement
+// https://www.sqlite.org/c3ref/step.html
+
+pub value type step-result
+    Busy
+    Done
+    Row
+
+extern sqlite3-step( ^stmt : any ) : fsys error<step-result>
+    c "kk_sqlite3_step"
+
+pub fun step( stmt : stmt ) : <fsys,exn> step-result
+    stmt.obj.sqlite3-step.untry
 
 // * finalizer
 // https://www.sqlite.org/c3ref/finalize.html

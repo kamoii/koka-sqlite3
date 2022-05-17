@@ -121,6 +121,24 @@ static kk_std_core__error kk_sqlite3_bind_text( kk_box_t stmt_, kk_integer_t ind
   return kk_sqlite3_unit_result(sqlite3_bind_text(stmt, index, value, (int)len, SQLITE_TRANSIENT), ctx);
 }
 
+// * Evaluate An SQL Statement
+// https://www.sqlite.org/c3ref/step.html
+
+static kk_std_core__error kk_sqlite3_step( kk_box_t stmt_, kk_context_t* ctx ) {
+  sqlite3_stmt *stmt = (sqlite3_stmt*)kk_cptr_raw_unbox(stmt_);
+  int result;
+  result = sqlite3_step(stmt);
+  if (result == SQLITE_ROW) {
+    return kk_error_ok(kk_db_sqlite3__step_result_box(kk_db_sqlite3__new_Row(ctx), ctx), ctx);
+  } else if (result == SQLITE_DONE) {
+    return kk_error_ok(kk_db_sqlite3__step_result_box(kk_db_sqlite3__new_Done(ctx), ctx), ctx);
+  } else if (result == SQLITE_BUSY) {
+    return kk_error_ok(kk_db_sqlite3__step_result_box(kk_db_sqlite3__new_Busy(ctx), ctx), ctx);
+  } else {
+    return kk_sqlite3_read_error(result, ctx);
+  }
+}
+
 // * finalizer
 // https://www.sqlite.org/c3ref/finalize.html
 
