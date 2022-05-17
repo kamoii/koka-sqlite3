@@ -121,6 +121,19 @@ static kk_std_core__error kk_sqlite3_bind_text( kk_box_t stmt_, kk_integer_t ind
   return kk_sqlite3_unit_result(sqlite3_bind_text(stmt, index, value, (int)len, SQLITE_TRANSIENT), ctx);
 }
 
+// * Number Of Columns In A Result Set
+// https://www.sqlite.org/c3ref/column_count.html
+//
+// NOTE
+// Whats the difference with sqlite3_data_count(https://www.sqlite.org/c3ref/data_count.html)?
+// -> sqlite3_data_count seems to change behaviour depending on step state.
+// -> sqlite3_column_count is indepedent to step state and always return the same value per prepared statement.
+
+static int64_t kk_sqlite3_column_count( kk_box_t stmt_, kk_context_t* ctx ) {
+  sqlite3_stmt *stmt = (sqlite3_stmt*)kk_cptr_raw_unbox(stmt_);
+  return (int64_t)sqlite3_column_count(stmt);
+}
+
 // * Evaluate An SQL Statement
 // https://www.sqlite.org/c3ref/step.html
 
@@ -138,6 +151,10 @@ static kk_std_core__error kk_sqlite3_step( kk_box_t stmt_, kk_context_t* ctx ) {
     return kk_sqlite3_read_error(result, ctx);
   }
 }
+
+// * Result Values From A Query
+// https://www.sqlite.org/c3ref/column_blob.html
+
 
 // * finalizer
 // https://www.sqlite.org/c3ref/finalize.html

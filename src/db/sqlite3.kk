@@ -82,6 +82,15 @@ extern sqlite3-bind-text( ^stmt : any, ^index : int, ^value : string ) : fsys er
 pub fun bind-text( stmt : stmt, index : int, value : string ) : <fsys,exn> ()
     stmt.obj.sqlite3-bind-text(index, value).untry
 
+// * Number Of Columns In A Result Set
+// https://www.sqlite.org/c3ref/column_count.html
+
+extern sqlite3-column-count( ^stmt : any ) : fsys int64
+    c "kk_sqlite3_column_count"
+
+pub fun column-count( stmt : stmt ) : fsys int
+    stmt.obj.sqlite3-column-count.int
+
 // * Evaluate An SQL Statement
 // https://www.sqlite.org/c3ref/step.html
 
