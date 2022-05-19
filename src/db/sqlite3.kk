@@ -105,6 +105,27 @@ extern sqlite3-step( ^stmt : any ) : fsys error<step-result>
 pub fun step( stmt : stmt ) : <fsys,exn> step-result
     stmt.obj.sqlite3-step.untry
 
+// * Result Values From A Query
+// https://www.sqlite.org/c3ref/column_blob.html
+
+extern sqlite3-column-int64( ^stmt : any, ^icol : int ) : fsys int64
+    c "kk_sqlite3_column_int64"
+
+pub fun column-int64( stmt : stmt, icol : int ) : fsys int64
+    stmt.obj.sqlite3-column-int64(icol)
+
+extern sqlite3-column-double( ^stmt : any, ^icol : int ) : fsys float64
+    c "kk_sqlite3_column_double"
+
+pub fun column-double( stmt : stmt, icol : int ) : fsys float64
+    stmt.obj.sqlite3-column-double(icol)
+
+extern sqlite3-column-text( ^stmt : any, ^icol : int ) : fsys maybe<string>
+    c "kk_sqlite3_column_text"
+
+pub fun column-text( stmt : stmt, icol : int ) : fsys maybe<string>
+    stmt.obj.sqlite3-column-text(icol)
+
 // * finalizer
 // https://www.sqlite.org/c3ref/finalize.html
 

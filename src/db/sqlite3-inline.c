@@ -155,6 +155,28 @@ static kk_std_core__error kk_sqlite3_step( kk_box_t stmt_, kk_context_t* ctx ) {
 // * Result Values From A Query
 // https://www.sqlite.org/c3ref/column_blob.html
 
+static int64_t kk_sqlite3_column_int64( kk_box_t stmt_, kk_integer_t icol_, kk_context_t* ctx ) {
+  sqlite3_stmt *stmt = (sqlite3_stmt*)kk_cptr_raw_unbox(stmt_);
+  int icol = kk_integer_clamp_int(icol_, ctx);
+  return (int64_t)sqlite3_column_int64(stmt, icol);
+}
+
+static double kk_sqlite3_column_double( kk_box_t stmt_, kk_integer_t icol_, kk_context_t* ctx ) {
+  sqlite3_stmt *stmt = (sqlite3_stmt*)kk_cptr_raw_unbox(stmt_);
+  int icol = kk_integer_clamp_int(icol_, ctx);
+  return sqlite3_column_double(stmt, icol);
+}
+
+static kk_std_core_types__maybe kk_sqlite3_column_text( kk_box_t stmt_, kk_integer_t icol_, kk_context_t* ctx ) {
+  sqlite3_stmt *stmt = (sqlite3_stmt*)kk_cptr_raw_unbox(stmt_);
+  int icol = kk_integer_clamp_int(icol_, ctx);
+  const char *str = (char*)sqlite3_column_text(stmt, icol);
+  if (str == NULL) {
+    return kk_std_core_types__new_Nothing(ctx);
+  } else {
+    return kk_std_core_types__new_Just(kk_string_box(kk_string_alloc_from_qutf8(str, ctx)), ctx);
+  }
+}
 
 // * finalizer
 // https://www.sqlite.org/c3ref/finalize.html
