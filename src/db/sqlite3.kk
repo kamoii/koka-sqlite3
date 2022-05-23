@@ -52,6 +52,8 @@ pub fun close( db : db ) : fsys ()
 // * prepare
 // https://www.sqlite.org/c3ref/prepare.html
 
+// The preferred routine to use is sqlite3_prepare_v2(). The sqlite3_prepare()
+// interface is legacy and should be avoided.
 extern sqlite3-prepare-v2( ^db : any, ^sql : string ) : fsys error<any>
     c "kk_sqlite3_prepare_v2"
 

@@ -78,16 +78,16 @@ static kk_unit_t kk_sqlite3_close( kk_box_t db_, kk_context_t* ctx ) {
 // * prepare
 // https://www.sqlite.org/c3ref/prepare.html
 
-// TODO: check for leftover(pzTail)
+// TODO: check for leftover(pztail)
+// It's waste to read pztail to kk_string_t since its part of already existing kk_string_t(sql).
+// Something like sslice would be nice, but currently we need to
 static kk_std_core__error kk_sqlite3_prepare_v2( kk_box_t db_, kk_string_t sql, kk_context_t* ctx ) {
   sqlite3_stmt *stmt = NULL;
   sqlite3 *db = (sqlite3*)kk_cptr_raw_unbox(db_);
-  const char *zSql = kk_string_cbuf_borrow(sql, NULL);
-  const char *pzTail = NULL;
+  const char *zsql = kk_string_cbuf_borrow(sql, NULL);
+  const char *pztail = NULL;
   int result;
-  // The preferred routine to use is sqlite3_prepare_v2(). The sqlite3_prepare()
-  // interface is legacy and should be avoided.
-  result = sqlite3_prepare_v2(db, zSql, -1, &stmt, &pzTail);
+  result = sqlite3_prepare_v2(db, zsql, -1, &stmt, &pztail);
   if (result == SQLITE_OK) {
     kk_box_t stmt_box = kk_cptr_raw_box(&kk_sqlite3_free_do_nothing, stmt, ctx);
     return kk_error_ok(stmt_box, ctx);
