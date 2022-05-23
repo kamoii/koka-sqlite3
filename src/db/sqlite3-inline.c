@@ -15,13 +15,6 @@ static inline int kk_integer_clamp_int(kk_integer_t x, kk_context_t* ctx) {
 #endif
 }
 
-// freeing must be done by the user
-static void kk_sqlite3_free_do_nothing( void* p, kk_block_t* b, kk_context_t* ctx ) {
-  kk_unused(p);
-  kk_unused(b);
-  kk_unused(ctx);
-}
-
 static inline kk_std_core__error kk_sqlite3_read_error( int error_code, kk_context_t* ctx ) {
   return kk_std_core__new_Error(kk_std_core__new_Exception(kk_string_alloc_from_qutf8(sqlite3_errstr(error_code), ctx), kk_std_core__new_ExnError(ctx), ctx), ctx);
 }
@@ -43,7 +36,7 @@ static kk_std_core__error kk_sqlite3_open( kk_string_t filename, kk_context_t* c
   int result;
   result = sqlite3_open(cfilename, &db);
   if (result == SQLITE_OK) {
-    return kk_error_ok(kk_cptr_raw_box(&kk_sqlite3_free_do_nothing, db, ctx), ctx);
+    return kk_error_ok(kk_intptr_box((intptr_t)db, ctx), ctx);
   } else {
     kk_string_t msg;
     // A database dbection handle is usually returned in *ppDb, even if an
@@ -69,8 +62,8 @@ static kk_std_core__error kk_sqlite3_open( kk_string_t filename, kk_context_t* c
 // are garbage collected, and where the order in which destructors are called is
 // arbitrary.
 
-static kk_unit_t kk_sqlite3_close( kk_box_t db_, kk_context_t* ctx ) {
-  sqlite3 *db = (sqlite3*)kk_cptr_raw_unbox(db_);
+static kk_unit_t kk_sqlite3_close( intptr_t db_, kk_context_t* ctx ) {
+  sqlite3 *db = (sqlite3*)db_;
   sqlite3_close(db);
   return kk_Unit;
 }
@@ -81,16 +74,15 @@ static kk_unit_t kk_sqlite3_close( kk_box_t db_, kk_context_t* ctx ) {
 // TODO: check for leftover(pztail)
 // It's waste to read pztail to kk_string_t since its part of already existing kk_string_t(sql).
 // Something like sslice would be nice, but currently we need to
-static kk_std_core__error kk_sqlite3_prepare_v2( kk_box_t db_, kk_string_t sql, kk_context_t* ctx ) {
+static kk_std_core__error kk_sqlite3_prepare_v2( intptr_t db_, kk_string_t sql, kk_context_t* ctx ) {
   sqlite3_stmt *stmt = NULL;
-  sqlite3 *db = (sqlite3*)kk_cptr_raw_unbox(db_);
+  sqlite3 *db = (sqlite3*)db_;
   const char *zsql = kk_string_cbuf_borrow(sql, NULL);
   const char *pztail = NULL;
   int result;
   result = sqlite3_prepare_v2(db, zsql, -1, &stmt, &pztail);
   if (result == SQLITE_OK) {
-    kk_box_t stmt_box = kk_cptr_raw_box(&kk_sqlite3_free_do_nothing, stmt, ctx);
-    return kk_error_ok(stmt_box, ctx);
+    return kk_error_ok(kk_intptr_box((intptr_t)stmt, ctx), ctx);
   } else {
     return kk_sqlite3_read_error(result, ctx);
   }
@@ -99,20 +91,20 @@ static kk_std_core__error kk_sqlite3_prepare_v2( kk_box_t db_, kk_string_t sql, 
 // * Binding Values To Prepared Statements
 // https://www.sqlite.org/c3ref/bind_blob.html
 
-static kk_std_core__error kk_sqlite3_bind_null( kk_box_t stmt_, kk_integer_t index_, kk_context_t* ctx ) {
-  sqlite3_stmt *stmt = (sqlite3_stmt*)kk_cptr_raw_unbox(stmt_);
+static kk_std_core__error kk_sqlite3_bind_null( intptr_t stmt_, kk_integer_t index_, kk_context_t* ctx ) {
+  sqlite3_stmt *stmt = (sqlite3_stmt*)stmt_;
   int index = kk_integer_clamp_int(index_, ctx);
   return kk_sqlite3_unit_result(sqlite3_bind_null(stmt, index),ctx);
 }
 
-static kk_std_core__error kk_sqlite3_bind_int64( kk_box_t stmt_, kk_integer_t index_, int64_t value, kk_context_t* ctx ) {
-  sqlite3_stmt *stmt = (sqlite3_stmt*)kk_cptr_raw_unbox(stmt_);
+static kk_std_core__error kk_sqlite3_bind_int64( intptr_t stmt_, kk_integer_t index_, int64_t value, kk_context_t* ctx ) {
+  sqlite3_stmt *stmt = (sqlite3_stmt*)stmt_;
   int index = kk_integer_clamp_int(index_, ctx);
   return kk_sqlite3_unit_result(sqlite3_bind_int64(stmt, index, (sqlite3_int64)value), ctx);
 }
 
-static kk_std_core__error kk_sqlite3_bind_text( kk_box_t stmt_, kk_integer_t index_, kk_string_t value_, kk_context_t* ctx ) {
-  sqlite3_stmt *stmt = (sqlite3_stmt*)kk_cptr_raw_unbox(stmt_);
+static kk_std_core__error kk_sqlite3_bind_text( intptr_t stmt_, kk_integer_t index_, kk_string_t value_, kk_context_t* ctx ) {
+  sqlite3_stmt *stmt = (sqlite3_stmt*)stmt_;
   int index = kk_integer_clamp_int(index_, ctx);
   kk_ssize_t len;
   const char *value = kk_string_cbuf_borrow(value_, &len);
@@ -129,16 +121,16 @@ static kk_std_core__error kk_sqlite3_bind_text( kk_box_t stmt_, kk_integer_t ind
 // -> sqlite3_data_count seems to change behaviour depending on step state.
 // -> sqlite3_column_count is indepedent to step state and always return the same value per prepared statement.
 
-static int64_t kk_sqlite3_column_count( kk_box_t stmt_, kk_context_t* ctx ) {
-  sqlite3_stmt *stmt = (sqlite3_stmt*)kk_cptr_raw_unbox(stmt_);
+static int64_t kk_sqlite3_column_count( intptr_t stmt_, kk_context_t* ctx ) {
+  sqlite3_stmt *stmt = (sqlite3_stmt*)stmt_;
   return (int64_t)sqlite3_column_count(stmt);
 }
 
 // * Evaluate An SQL Statement
 // https://www.sqlite.org/c3ref/step.html
 
-static kk_std_core__error kk_sqlite3_step( kk_box_t stmt_, kk_context_t* ctx ) {
-  sqlite3_stmt *stmt = (sqlite3_stmt*)kk_cptr_raw_unbox(stmt_);
+static kk_std_core__error kk_sqlite3_step( intptr_t stmt_, kk_context_t* ctx ) {
+  sqlite3_stmt *stmt = (sqlite3_stmt*)stmt_;
   int result;
   result = sqlite3_step(stmt);
   if (result == SQLITE_ROW) {
@@ -155,20 +147,20 @@ static kk_std_core__error kk_sqlite3_step( kk_box_t stmt_, kk_context_t* ctx ) {
 // * Result Values From A Query
 // https://www.sqlite.org/c3ref/column_blob.html
 
-static int64_t kk_sqlite3_column_int64( kk_box_t stmt_, kk_integer_t icol_, kk_context_t* ctx ) {
-  sqlite3_stmt *stmt = (sqlite3_stmt*)kk_cptr_raw_unbox(stmt_);
+static int64_t kk_sqlite3_column_int64( intptr_t stmt_, kk_integer_t icol_, kk_context_t* ctx ) {
+  sqlite3_stmt *stmt = (sqlite3_stmt*)stmt_;
   int icol = kk_integer_clamp_int(icol_, ctx);
   return (int64_t)sqlite3_column_int64(stmt, icol);
 }
 
-static double kk_sqlite3_column_double( kk_box_t stmt_, kk_integer_t icol_, kk_context_t* ctx ) {
-  sqlite3_stmt *stmt = (sqlite3_stmt*)kk_cptr_raw_unbox(stmt_);
+static double kk_sqlite3_column_double( intptr_t stmt_, kk_integer_t icol_, kk_context_t* ctx ) {
+  sqlite3_stmt *stmt = (sqlite3_stmt*)stmt_;
   int icol = kk_integer_clamp_int(icol_, ctx);
   return sqlite3_column_double(stmt, icol);
 }
 
-static kk_std_core_types__maybe kk_sqlite3_column_text( kk_box_t stmt_, kk_integer_t icol_, kk_context_t* ctx ) {
-  sqlite3_stmt *stmt = (sqlite3_stmt*)kk_cptr_raw_unbox(stmt_);
+static kk_std_core_types__maybe kk_sqlite3_column_text( intptr_t stmt_, kk_integer_t icol_, kk_context_t* ctx ) {
+  sqlite3_stmt *stmt = (sqlite3_stmt*)stmt_;
   int icol = kk_integer_clamp_int(icol_, ctx);
   const char *str = (char*)sqlite3_column_text(stmt, icol);
   if (str == NULL) {
@@ -181,7 +173,7 @@ static kk_std_core_types__maybe kk_sqlite3_column_text( kk_box_t stmt_, kk_integ
 // * finalizer
 // https://www.sqlite.org/c3ref/finalize.html
 
-static kk_std_core__error kk_sqlite3_finalize( kk_box_t stmt_, kk_context_t* ctx ) {
-  sqlite3_stmt *stmt = (sqlite3_stmt*)kk_cptr_raw_unbox(stmt_);
+static kk_std_core__error kk_sqlite3_finalize( intptr_t stmt_, kk_context_t* ctx ) {
+  sqlite3_stmt *stmt = (sqlite3_stmt*)stmt_;
   return kk_sqlite3_unit_result(sqlite3_finalize(stmt), ctx);
 }

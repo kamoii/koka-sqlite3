@@ -10,15 +10,15 @@ extern import
 
 // NOTE: want newtype-like feature..
 abstract struct db
-    obj : any  // sqlite3*
+    obj : intptr_t  // sqlite3*
 
 abstract struct stmt
-    obj : any  // sqlite3_stmt*
+    obj : intptr_t  // sqlite3_stmt*
 
 // * open
 // https://www.sqlite.org/c3ref/open.html
 
-extern sqlite3-open( ^filename : string ) : fsys error<any>
+extern sqlite3-open( ^filename : string ) : fsys error<intptr_t>
     c "kk_sqlite3_open"
 
 pub fun open( path : path ) : <fsys,exn> db
@@ -43,7 +43,7 @@ pub fun open-temporary-on-disk() : <fsys,exn> db
 // * close
 // https://www.sqlite.org/c3ref/close.html
 
-extern sqlite3-close( ^db : any ) : fsys ()
+extern sqlite3-close( db : intptr_t ) : fsys ()
     c "kk_sqlite3_close"
 
 pub fun close( db : db ) : fsys ()
@@ -54,7 +54,7 @@ pub fun close( db : db ) : fsys ()
 
 // The preferred routine to use is sqlite3_prepare_v2(). The sqlite3_prepare()
 // interface is legacy and should be avoided.
-extern sqlite3-prepare-v2( ^db : any, ^sql : string ) : fsys error<any>
+extern sqlite3-prepare-v2( db : intptr_t, ^sql : string ) : fsys error<intptr_t>
     c "kk_sqlite3_prepare_v2"
 
 pub fun prepare-v2( db : db, sql : string ) : <fsys,exn> stmt
@@ -64,21 +64,21 @@ pub fun prepare-v2( db : db, sql : string ) : <fsys,exn> stmt
 // https://www.sqlite.org/c3ref/bind_blob.html
 
 // null
-extern sqlite3-bind-null( ^stmt : any, ^index : int ) : fsys error<()>
+extern sqlite3-bind-null( stmt : intptr_t, ^index : int ) : fsys error<()>
     c "kk_sqlite3_bind_null"
 
 pub fun bind-null( stmt : stmt, index : int ) : <fsys,exn> ()
     stmt.obj.sqlite3-bind-null(index).untry
 
 // int64
-extern sqlite3-bind-int64( ^stmt : any, ^index : int, value : int64 ) : fsys error<()>
+extern sqlite3-bind-int64( stmt : intptr_t, ^index : int, value : int64 ) : fsys error<()>
     c "kk_sqlite3_bind_int64"
 
 pub fun bind-int64( stmt : stmt, index : int, value : int64 ) : <fsys,exn> ()
     stmt.obj.sqlite3-bind-int64(index, value).untry
 
 // text
-extern sqlite3-bind-text( ^stmt : any, ^index : int, ^value : string ) : fsys error<()>
+extern sqlite3-bind-text( stmt : intptr_t, ^index : int, ^value : string ) : fsys error<()>
     c "kk_sqlite3_bind_text"
 
 pub fun bind-text( stmt : stmt, index : int, value : string ) : <fsys,exn> ()
@@ -87,7 +87,7 @@ pub fun bind-text( stmt : stmt, index : int, value : string ) : <fsys,exn> ()
 // * Number Of Columns In A Result Set
 // https://www.sqlite.org/c3ref/column_count.html
 
-extern sqlite3-column-count( ^stmt : any ) : fsys int64
+extern sqlite3-column-count( stmt : intptr_t ) : fsys int64
     c "kk_sqlite3_column_count"
 
 pub fun column-count( stmt : stmt ) : fsys int
@@ -101,7 +101,7 @@ pub value type step-result
     Done
     Row
 
-extern sqlite3-step( ^stmt : any ) : fsys error<step-result>
+extern sqlite3-step( stmt : intptr_t ) : fsys error<step-result>
     c "kk_sqlite3_step"
 
 pub fun step( stmt : stmt ) : <fsys,exn> step-result
@@ -110,19 +110,19 @@ pub fun step( stmt : stmt ) : <fsys,exn> step-result
 // * Result Values From A Query
 // https://www.sqlite.org/c3ref/column_blob.html
 
-extern sqlite3-column-int64( ^stmt : any, ^icol : int ) : fsys int64
+extern sqlite3-column-int64( stmt : intptr_t, ^icol : int ) : fsys int64
     c "kk_sqlite3_column_int64"
 
 pub fun column-int64( stmt : stmt, icol : int ) : fsys int64
     stmt.obj.sqlite3-column-int64(icol)
 
-extern sqlite3-column-double( ^stmt : any, ^icol : int ) : fsys float64
+extern sqlite3-column-double( stmt : intptr_t, ^icol : int ) : fsys float64
     c "kk_sqlite3_column_double"
 
 pub fun column-double( stmt : stmt, icol : int ) : fsys float64
     stmt.obj.sqlite3-column-double(icol)
 
-extern sqlite3-column-text( ^stmt : any, ^icol : int ) : fsys maybe<string>
+extern sqlite3-column-text( stmt : intptr_t, ^icol : int ) : fsys maybe<string>
     c "kk_sqlite3_column_text"
 
 pub fun column-text( stmt : stmt, icol : int ) : fsys maybe<string>
@@ -131,7 +131,7 @@ pub fun column-text( stmt : stmt, icol : int ) : fsys maybe<string>
 // * finalizer
 // https://www.sqlite.org/c3ref/finalize.html
 
-extern sqlite3-finalize( ^stmt : any ) : fsys error<()>
+extern sqlite3-finalize( stmt : intptr_t ) : fsys error<()>
     c "kk_sqlite3_finalize"
 
 pub fun finalize( stmt : stmt ) : <fsys,exn> ()
