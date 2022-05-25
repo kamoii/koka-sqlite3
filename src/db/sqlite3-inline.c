@@ -57,11 +57,6 @@ static kk_std_core__error kk_sqlite3_open( kk_string_t filename, kk_context_t* c
 // https://www.sqlite.org/c3ref/close.html
 // TODO: error handling
 
-//
-// The sqlite3_close_v2() interface is intended for use with host languages that
-// are garbage collected, and where the order in which destructors are called is
-// arbitrary.
-
 static kk_unit_t kk_sqlite3_close( intptr_t db_, kk_context_t* ctx ) {
   sqlite3 *db = (sqlite3*)db_;
   sqlite3_close(db);
@@ -71,18 +66,18 @@ static kk_unit_t kk_sqlite3_close( intptr_t db_, kk_context_t* ctx ) {
 // * prepare
 // https://www.sqlite.org/c3ref/prepare.html
 
-// TODO: check for leftover(pztail)
-// It's waste to read pztail to kk_string_t since its part of already existing kk_string_t(sql).
-// Something like sslice would be nice, but currently we need to
-static kk_std_core__error kk_sqlite3_prepare_v2( intptr_t db_, kk_string_t sql, kk_context_t* ctx ) {
+static kk_std_core__error kk_sqlite3_prepare_v2( intptr_t db_, intptr_t ptr, kk_context_t* ctx ) {
   sqlite3_stmt *stmt = NULL;
   sqlite3 *db = (sqlite3*)db_;
-  const char *zsql = kk_string_cbuf_borrow(sql, NULL);
   const char *pztail = NULL;
   int result;
-  result = sqlite3_prepare_v2(db, zsql, -1, &stmt, &pztail);
+  result = sqlite3_prepare_v2(db, (const char*)ptr, -1, &stmt, &pztail);
   if (result == SQLITE_OK) {
-    return kk_error_ok(kk_intptr_box((intptr_t)stmt, ctx), ctx);
+    kk_box_t fst = kk_intptr_box((intptr_t)stmt, ctx);
+    kk_box_t snd = kk_std_core_types__maybe_box(pztail == NULL ?
+                                                kk_std_core_types__new_Nothing(ctx) :
+                                                kk_std_core_types__new_Just(kk_intptr_box((intptr_t)pztail, ctx), ctx), ctx);
+    return kk_error_ok(kk_std_core_types__tuple2__box(kk_std_core_types__new_dash__lp__comma__rp_(fst, snd, ctx), ctx), ctx);
   } else {
     return kk_sqlite3_read_error(result, ctx);
   }

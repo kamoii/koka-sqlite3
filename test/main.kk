@@ -4,7 +4,8 @@ import db/sqlite3
 
 fun test-open()
     val db = open-in-memory()
-    val stmt = db.prepare-v2("select 1")
+    val ssql = "select 1".ssql
+    val (stmt, ssql_) = db.prepare-v2(ssql)
     trace-any("stmt", stmt)
     stmt.finalize()
 
