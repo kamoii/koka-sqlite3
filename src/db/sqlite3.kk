@@ -109,6 +109,12 @@ pub value type step-result
     Done
     Row
 
+pub fun show(r: step-result): string
+    match r
+        Busy -> "Busy"
+        Done -> "Done"
+        Row -> "Row"
+
 extern sqlite3-step( stmt : intptr_t ) : fsys error<step-result>
     c "kk_sqlite3_step"
 
