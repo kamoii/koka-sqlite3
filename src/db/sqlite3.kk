@@ -68,7 +68,7 @@ pub fun prepare-v2(db: db, ssql: ssql): <fsys,exn> (stmt, maybe<ssql>)
     match db.ptr.sqlite3-prepare-v2(ssql.ptr).untry
         (stmt_, ssql_) ->
             ( Stmt(stmt_)
-            , ssql_.map(fn(ptr_) { ssql( ptr = ptr_ ) })
+            , ssql_.map(fn(ptr_) ssql( ptr = ptr_ ))
             )
 
 // * Binding Values To Prepared Statements
