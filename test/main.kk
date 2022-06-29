@@ -1,19 +1,22 @@
 module main
 
 import db/sqlite3
-
-fun test-open()
-    val db = open-in-memory()
-    val ssql = "select 7".ssql
-    val (stmt, ssql2) = db.prepare-v2(ssql)
-    trace-any("stmt", stmt)
-    trace-any("ssql", ssql2)
-    println(stmt.step.show)
-    // no show for int64???
-    println(stmt.column-int64(0).int.show)
-    println(stmt.step.show)
-    println(stmt.step.show)
-    stmt.finalize()
+import test
 
 fun main()
+  run-test
     test-open()
+
+fun test-open()
+  val db = open-in-memory()
+  val ssql = "select 7".ssql
+  val (stmt, ssql-rest) = db.prepare-v2(ssql)
+  test("ssql-rest must be empty")
+    ssql-rest.is-nothing
+  test("first step should be Row")
+    stmt.step.is-row
+  test("first column should be 7")
+    stmt.column-int64(0).int == 7
+  test("shoud be DONE")
+    stmt.step.is-done
+  stmt.finalize()
