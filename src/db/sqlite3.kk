@@ -76,6 +76,21 @@ pub fun show(ssql: ssql): string
 extern sqlite3-prepare-v2(db: intptr_t, ptr: intptr_t): io-sqlite3 error<(maybe<intptr_t>, maybe<intptr_t>)>
   c "kk_sqlite3_prepare_v2"
 
+/*
+
+samples:
+
+  "select 1" -> stmt=Just "select 1", ssql=Just ""
+  "select 1;" -> stmt=Just "select 1", ssql=Just ""
+  ";; select 1; select 2" -> stmt=Just "select 7", ssql=Just " select 2"
+
+`stmt` could be Nothing if there is no executable statement:
+
+  e.g ";" -> stmt=Nothing, ssql=Just ""
+
+If there is a SQL syntax error, error whould be thrown.
+
+*/
 pub fun prepare-v2(db: db, ssql: ssql): io-sqlite3 (maybe<stmt>, maybe<ssql>)
   match db.ptr.sqlite3-prepare-v2(ssql.ptr).untry
     (stmt_, ssql_) ->
