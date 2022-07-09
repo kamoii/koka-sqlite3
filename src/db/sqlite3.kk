@@ -53,6 +53,8 @@ pub fun close(db: db): io-sqlite3 ()
 // * Compiling An SQL Statement
 // https://www.sqlite.org/c3ref/prepare.html
 
+// ptr points inside str's cbuf.
+// Need to keep reference of str to prevent it from being freed.
 abstract value struct ssql
   str: string
   ptr: intptr_t
@@ -60,16 +62,24 @@ abstract value struct ssql
 inline extern string-cbuf(^str: string): intptr_t
   c inline "(intptr_t)kk_string_cbuf_borrow(#1, NULL)"
 
+// for debug.
+inline extern string(ptr: intptr_t): string
+  c inline "kk_string_alloc_from_utf8((const char*)(#1), kk_context())"
+
 pub fun ssql(str: string): ssql
   Ssql(str, string-cbuf(str))
 
-extern sqlite3-prepare-v2(db: intptr_t, ptr: intptr_t): io-sqlite3 error<(intptr_t, maybe<intptr_t>)>
+// for debug
+pub fun show(ssql: ssql): string
+  ssql.ptr.string
+
+extern sqlite3-prepare-v2(db: intptr_t, ptr: intptr_t): io-sqlite3 error<(maybe<intptr_t>, maybe<intptr_t>)>
   c "kk_sqlite3_prepare_v2"
 
-pub fun prepare-v2(db: db, ssql: ssql): io-sqlite3 (stmt, maybe<ssql>)
+pub fun prepare-v2(db: db, ssql: ssql): io-sqlite3 (maybe<stmt>, maybe<ssql>)
   match db.ptr.sqlite3-prepare-v2(ssql.ptr).untry
     (stmt_, ssql_) ->
-      ( Stmt(stmt_)
+      ( stmt_.map(Stmt)
       , ssql_.map(fn(ptr_) ssql( ptr = ptr_ ))
       )
 

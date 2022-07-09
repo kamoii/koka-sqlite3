@@ -9,10 +9,10 @@ fun main()
 
 fun test-open()
   val db = open-in-memory()
+  // val ssql = "select 7".ssql
   val ssql = "select 7".ssql
-  val (stmt, ssql-rest) = db.prepare-v2(ssql)
-  test("ssql-rest must be empty")
-    ssql-rest.is-nothing
+  val (stmt_, _ssql-rest) = db.prepare-v2(ssql)
+  val stmt = stmt_.unjust
   test("first step should be Row")
     stmt.step.is-row
   test("first column should be 7")

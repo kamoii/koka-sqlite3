@@ -73,7 +73,9 @@ static kk_std_core__error kk_sqlite3_prepare_v2( intptr_t db_, intptr_t ptr, kk_
   int result;
   result = sqlite3_prepare_v2(db, (const char*)ptr, -1, &stmt, &pztail);
   if (result == SQLITE_OK) {
-    kk_box_t fst = kk_intptr_box((intptr_t)stmt, ctx);
+    kk_box_t fst = kk_std_core_types__maybe_box(stmt == NULL ?
+                                                kk_std_core_types__new_Nothing(ctx) :
+                                                kk_std_core_types__new_Just(kk_intptr_box((intptr_t)stmt, ctx), ctx), ctx);
     kk_box_t snd = kk_std_core_types__maybe_box(pztail == NULL ?
                                                 kk_std_core_types__new_Nothing(ctx) :
                                                 kk_std_core_types__new_Just(kk_intptr_box((intptr_t)pztail, ctx), ctx), ctx);
